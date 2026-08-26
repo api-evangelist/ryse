@@ -1,0 +1,125 @@
+generated: '2026-08-26'
+method: derived
+source: >-
+  Derived from the verbatim JSON Schemas in mcp/ryse-ucp-mcp-tools.json,
+  mcp/ryse-storefront-mcp-tools.json and mcp/ryse-customer-account-mcp-tools.json (probed
+  2026-08-26), plus the capability schema URNs declared in well-known/ryse-ucp.json. There is no
+  OpenAPI to derive from; the MCP tool inputSchemas are the contract.
+note: >-
+  RYSE's data model is the UCP shopping model as instantiated for RYSE's own store. Entities are
+  addressed by Shopify Global IDs (gid://shopify/<Type>/<id>). Money is always the pair
+  {amount:<integer minor units>, currency:<ISO 4217>}.
+identifier_scheme:
+  style: Shopify Global ID (GID)
+  form: gid://shopify/<Type>/<id>
+  examples:
+  - gid://shopify/Product/123
+  - gid://shopify/Cart/Z212345?key=123456789
+  caveat: Cart GIDs require the ?key= component; a bare Cart GID is rejected.
+entity_count: 9
+entities:
+- name: Product
+  ucp_capability: dev.ucp.shopping.catalog.lookup
+  schema: https://ucp.dev/2026-04-08/schemas/shopping/catalog_lookup.json
+  read_by: [search_catalog, lookup_catalog, get_product, get_product_details]
+  written_by: []
+  key_fields: [id, title, handle, product_type, price, available]
+  note: >-
+    17 products in RYSE's live catalog at probe time. RYSE extends the base UCP catalog capability
+    with dev.shopify.catalog, which declares extends [dev.ucp.shopping.catalog.search,
+    dev.ucp.shopping.catalog.lookup].
+- name: ProductVariant
+  read_by: [get_product, get_product_details, lookup_catalog]
+  key_fields: [id, options, price, available]
+  note: >-
+    The unit a cart line item actually references. get_product_details selects one by an options
+    object such as {"Size":"10","Color":"Black"}; option matching is case-insensitive and partial
+    options are accepted, so a caller can get back a variant it did not fully specify.
+- name: Cart
+  ucp_capability: dev.ucp.shopping.cart
+  schema: https://ucp.dev/2026-04-08/schemas/shopping/cart.json
+  read_by: [get_cart]
+  written_by: [create_cart, update_cart, cancel_cart]
+  key_fields: [id, line_items, buyer, context, signals, discount_codes, gift_card_codes, note]
+  reversal: cancel_cart
+- name: LineItem
+  parent: Cart
+  key_fields: [id, quantity, item.id]
+  required: [item, quantity]
+  note: item.id is a ProductVariant GID, not a Product GID.
+- name: Checkout
+  ucp_capability: dev.ucp.shopping.checkout
+  schema: https://ucp.dev/2026-04-08/schemas/shopping/checkout.json
+  read_by: [get_checkout]
+  written_by: [create_checkout, update_checkout, complete_checkout, cancel_checkout]
+  key_fields: [id, cart_id, line_items, buyer, payment, fulfillment, discounts, context, attribution]
+  required_on_create: [line_items]
+  reversal: cancel_checkout (pre-completion only)
+  idempotency: complete_checkout requires meta["idempotency-key"]
+- name: Fulfillment
+  ucp_capability: dev.ucp.shopping.fulfillment
+  schema: https://ucp.dev/2026-04-08/schemas/shopping/fulfillment.json
+  extends: [dev.ucp.shopping.checkout, dev.ucp.shopping.cart]
+  config:
+    allows_multi_destination: {shipping: false}
+    allows_method_combinations: [[shipping]]
+  note: >-
+    RYSE's declared configuration permits shipping only, to a single destination — an agent cannot
+    split one order across addresses.
+- name: Discount
+  ucp_capability: dev.ucp.shopping.discount
+  schema: https://ucp.dev/2026-04-08/schemas/shopping/discount.json
+  extends: [dev.ucp.shopping.checkout, dev.ucp.shopping.cart]
+  written_by: [update_cart (discount_codes, gift_card_codes), update_checkout (discounts)]
+- name: Order
+  ucp_capability: dev.ucp.shopping.order
+  schema: https://ucp.dev/2026-04-08/schemas/shopping/order.json
+  read_by: [get_order, get_order_status, get_most_recent_order_status]
+  written_by: [complete_checkout (creates), request_return (opens a return against)]
+  key_fields: [id, order_number, status]
+  note: >-
+    Split across two surfaces: get_order is on the anonymous UCP server, while
+    get_order_status/get_most_recent_order_status are on the OAuth-gated customer-account server and
+    resolve against the signed-in customer rather than an id.
+- name: StoreCredit
+  read_by: [get_store_credit_balances]
+  surface: https://account.helloryse.com/customer/api/mcp
+  auth: customer OAuth required
+  key_fields: [balances]
+relationships:
+- {from: Cart, to: LineItem, type: has_many, via: line_items}
+- {from: LineItem, to: ProductVariant, type: belongs_to, via: item.id}
+- {from: Product, to: ProductVariant, type: has_many, via: variants}
+- {from: Checkout, to: Cart, type: belongs_to, via: cart_id}
+- {from: Checkout, to: LineItem, type: has_many, via: line_items}
+- {from: Checkout, to: Fulfillment, type: has_one, via: fulfillment}
+- {from: Checkout, to: Discount, type: has_many, via: discounts}
+- {from: Order, to: Checkout, type: belongs_to, via: complete_checkout}
+- {from: Order, to: LineItem, type: has_many, via: line_items}
+- {from: Customer, to: Order, type: has_many, via: customer OAuth session}
+- {from: Customer, to: StoreCredit, type: has_many, via: get_store_credit_balances}
+shared_value_objects:
+- name: Money
+  shape: '{amount: integer (ISO 4217 minor units), currency: string (ISO 4217)}'
+  used_by: [Product, ProductVariant, Cart, Checkout, Order, Discount, StoreCredit]
+- name: BuyerContext
+  shape: '{address_country, address_region, postal_code, language, currency, intent}'
+  used_by: [catalog.context, cart.context, checkout.context]
+  semantics: provisional; superseded by higher-resolution data, unsupported hints ignored silently
+- name: PlatformSignals
+  shape: '{dev.ucp.buyer_ip, dev.ucp.user_agent}'
+  used_by: [catalog.signals, cart.signals]
+  purpose: authorization and abuse prevention
+- name: Pagination
+  shape: '{cursor: string, limit: integer (default 10, minimum 1)}'
+  used_by: [search_catalog, lookup_catalog]
+  note: UCP surface only; the Storefront MCP exposes no pagination.
+- name: AgentIdentity
+  shape: '{meta.ucp-agent.profile: uri}'
+  used_by: every UCP tool
+  purpose: dereferenceable agent profile the server fetches before executing any tool
+absent:
+  - >-
+    No device entity. Nothing in RYSE's published contract models a SmartShade, SmartCurtain,
+    SmartBridge, a shade position, a schedule or a group. The hardware RYSE sells has no
+    machine-readable data model on any RYSE host — the entire published model is commerce.

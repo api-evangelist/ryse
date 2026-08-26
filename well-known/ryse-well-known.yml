@@ -1,0 +1,99 @@
+generated: '2026-08-26'
+method: searched
+source: live GET probes of /.well-known/* on every RYSE host
+note: >-
+  RYSE's storefront and customer-account hosts are Shopify-operated but merchant-scoped: the documents
+  below are served from RYSE's own domains (www.helloryse.com, account.helloryse.com) and describe
+  RYSE's own store (shop id 51479806112) and RYSE's own customer authorization server. No
+  /.well-known/security.txt, /.well-known/api-catalog, /.well-known/ai-plugin.json,
+  /.well-known/agent-card.json or /.well-known/agent.json is served on any host — every one of those
+  returned 404 with the Shopify not-found HTML body, which is a genuine absence rather than an SPA
+  catch-all (the host returns real 404 status codes, not soft 200s).
+hit_count: 7
+hosts:
+- host: https://www.helloryse.com
+  documents:
+  - path: /.well-known/ucp
+    status: 200
+    file: ryse-ucp.json
+    note: >-
+      Universal Commerce Protocol merchant profile. Declares UCP 2026-04-08 (and 2026-01-23),
+      the dev.ucp.shopping service over MCP transport, capability set (cart, checkout, fulfillment,
+      discount, order, catalog.search, catalog.lookup, dev.shopify.catalog) and payment handlers.
+  - path: /.well-known/openid-configuration
+    status: 200
+    file: ryse-openid-configuration.json
+  - path: /.well-known/oauth-authorization-server
+    status: 200
+    file: ryse-oauth-authorization-server.json
+  - path: /.well-known/security.txt
+    status: 404
+  - path: /.well-known/api-catalog
+    status: 404
+  - path: /.well-known/ai-plugin.json
+    status: 404
+  - path: /.well-known/agent-card.json
+    status: 404
+  - path: /.well-known/agent.json
+    status: 404
+- host: https://account.helloryse.com
+  documents:
+  - path: /.well-known/openid-configuration
+    status: 200
+    file: ryse-openid-configuration.json
+    note: byte-identical issuer block to the storefront copy; endpoints resolve on account.helloryse.com
+  - path: /.well-known/oauth-authorization-server
+    status: 200
+    file: ryse-oauth-authorization-server.json
+  - path: /.well-known/oauth-protected-resource
+    status: 200
+    file: ryse-oauth-protected-resource.json
+    note: RFC 9728 protected-resource metadata for the customer-account MCP surface
+  - path: /.well-known/security.txt
+    status: 404
+  - path: /.well-known/agent-card.json
+    status: 404
+  - path: /.well-known/agent.json
+    status: 404
+  - path: /.well-known/api-catalog
+    status: 404
+- host: https://helloryse.myshopify.com
+  documents:
+  - path: /.well-known/openid-configuration
+    status: 200
+    file: ryse-openid-configuration.json
+  - path: /.well-known/oauth-authorization-server
+    status: 200
+    file: ryse-oauth-authorization-server.json
+  - path: /.well-known/oauth-protected-resource
+    status: 200
+    file: ryse-oauth-protected-resource.json
+  - path: /.well-known/security.txt
+    status: 404
+  - path: /.well-known/agent-card.json
+    status: 404
+  - path: /.well-known/agent.json
+    status: 404
+other_discovery:
+- path: /llms.txt
+  host: https://www.helloryse.com
+  status: 200
+  file: ../llms/ryse-llms.txt
+- path: /agents.md
+  host: https://www.helloryse.com
+  status: 200
+  file: ../llms/ryse-agents.md
+- path: /AGENTS.md
+  host: https://www.helloryse.com
+  status: 200
+  note: >-
+    Byte-identical to /agents.md (verified by diff on 2026-08-26) — the same document served at a
+    second casing, not a separate artifact.
+- path: /robots.txt
+  host: https://www.helloryse.com
+  status: 200
+  note: names agents.md, the UCP discovery doc and the UCP/MCP endpoint, and forbids unattended checkout
+- path: /sitemap_agentic_discovery.xml
+  host: https://www.helloryse.com
+  status: 200
+  note: a dedicated agentic-discovery sitemap whose single entry is /agents.md

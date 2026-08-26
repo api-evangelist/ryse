@@ -1,0 +1,108 @@
+generated: '2026-08-26'
+method: probed
+source: >-
+  Live unauthenticated JSON-RPC probes of https://www.helloryse.com/api/ucp/mcp,
+  https://www.helloryse.com/api/mcp and https://account.helloryse.com/customer/api/mcp on
+  2026-08-26. Every entry below is a response body RYSE actually returned; nothing is inferred.
+format: json-rpc-2.0
+rfc9457: false
+rfc9457_note: >-
+  RYSE returns no application/problem+json anywhere. There is no type/title/status/detail/instance
+  envelope, no error registry and no documented error reference. The catalog below was built by
+  probing, because RYSE publishes none.
+envelopes:
+- id: transport-error
+  layer: JSON-RPC transport
+  shape: '{"jsonrpc":"2.0","id":<id>,"error":{"code":<int>,"message":<string>,"data":<any>}}'
+  http_status_observed: [200, 422]
+- id: tool-error
+  layer: MCP tool result
+  shape: '{"jsonrpc":"2.0","id":<id>,"result":{"content":[{"type":"text","text":<string>}],"isError":true}}'
+  http_status_observed: [200]
+  warning: >-
+    Tool failures are HTTP 200 with isError true. Status-code-only error handling will silently
+    treat failures as successes.
+- id: rest-error
+  layer: customer-account HTTP layer
+  shape: '{"errors":[{"message":<string>}]}'
+  http_status_observed: [401]
+error_count: 5
+errors:
+- code: -32001
+  message: UCP discovery failed
+  endpoint: https://www.helloryse.com/api/ucp/mcp
+  http_status: 422
+  envelope: transport-error
+  data:
+    code: invalid_profile_url
+    content: 'Unable to fetch agent profile: Missing profile uri'
+    continue_url: https://helloryse.myshopify.com/
+  cause: >-
+    The request omitted meta["ucp-agent"].profile, or supplied a URI the server could not
+    dereference into a UCP agent profile document.
+  remediation: >-
+    Publish a fetchable UCP agent profile and pass its URI as meta["ucp-agent"].profile on every
+    tools/call, prompts/list and resources/list request.
+  retryable: false
+  observed: '2026-08-26'
+- code: -32602
+  message: Invalid params
+  endpoint: https://www.helloryse.com/api/mcp
+  http_status: 200
+  envelope: transport-error
+  data: 'Tool not found: <name>'
+  cause: A tools/call named a tool that does not exist on this server.
+  remediation: Call tools/list first and use only the returned names.
+  retryable: false
+  observed: '2026-08-26'
+- code: null
+  message: 'Invalid cart_id format. Expected a Shopify Cart GID (e.g., ''gid://shopify/Cart/Z212345?key=123456789'').'
+  endpoint: https://www.helloryse.com/api/mcp
+  http_status: 200
+  envelope: tool-error
+  tool: get_cart
+  cause: cart_id was not a well-formed Shopify Cart GID including its ?key= component.
+  remediation: >-
+    Pass the cart_id exactly as returned by update_cart/create_cart, including the ?key= query
+    component. Do not reconstruct it.
+  retryable: false
+  observed: '2026-08-26'
+- code: null
+  message: >-
+    DEPRECATION NOTICE: This tool is served by the Storefront MCP server at /api/mcp and will no
+    longer be accessible after August 31, 2026. Migrate to the UCP-conforming tools at /api/ucp/mcp.
+    See https://shopify.dev/docs/agents for migration details.
+  endpoint: https://www.helloryse.com/api/mcp
+  http_status: 200
+  envelope: tool-error
+  kind: advisory
+  cause: >-
+    Every Storefront MCP tool response now appends a sunset advisory as an extra text block in
+    content[].
+  remediation: Migrate to https://www.helloryse.com/api/ucp/mcp before 2026-08-31.
+  retryable: n/a
+  observed: '2026-08-26'
+  cross_link: lifecycle/ryse-lifecycle.yml
+- code: null
+  message: Unauthorized
+  endpoint: https://account.helloryse.com/customer/api/mcp
+  http_status: 401
+  envelope: rest-error
+  headers:
+    www-authenticate: https://account.helloryse.com/authentication/.well-known/openid-configuration
+  cause: tools/call issued without a customer OAuth bearer token.
+  remediation: >-
+    Complete the authorization_code + PKCE flow at
+    https://account.helloryse.com/authentication/oauth/authorize with scope
+    customer-account-mcp-api:full and send the access token in the Authorization header.
+  retryable: false
+  observed: '2026-08-26'
+undocumented:
+- >-
+  429 handling. RYSE's own agents.md instructs agents to "Back off on 429 responses", but no 429 was
+  reproduced under normal probing and no Retry-After behaviour is documented. The shape of a
+  rate-limit error is unknown.
+- >-
+  Payment declines. complete_checkout is the only money-moving call and RYSE publishes no decline-code
+  reference; the decline vocabulary belongs to the underlying payment handlers (Google Pay,
+  Shopify card, Shop Pay) declared in /.well-known/ucp, not to RYSE.

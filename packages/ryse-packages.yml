@@ -1,0 +1,103 @@
+generated: '2026-08-26'
+method: searched
+source: >-
+  registry.npmjs.org search API, pypi.org, api.github.com org lookups, itunes.apple.com lookup API,
+  play.google.com and the Homey app store — all probed 2026-08-26
+summary: >-
+  RYSE publishes NO API client library on any package registry. There is no npm, PyPI, RubyGems,
+  Maven, NuGet, Go or crates package for RYSE on any registry probed, and no first-party SDK is
+  linked from any RYSE page. The first-party distributables below are end-user applications and a
+  smart-home platform integration, not developer SDKs — which is why no `SDKs` pointer is emitted
+  for this provider.
+sdk_count: 0
+package_count: 2
+packages:
+- name: RYSE
+  official: true
+  kind: mobile-app
+  platform: iOS
+  registry: apple-app-store
+  registry_url: https://apps.apple.com/us/app/ryse/id1216335329
+  bundle_id: com.life.AXIS.com.life.AXIS
+  publisher: RYSE INC.
+  version: 2.3.7
+  published: '2026-07-02'
+  first_released: '2017-04-21'
+  minimum_os: '17.1'
+  currency_note: >-
+    Actively maintained — last shipped 2026-07-02, under two months before this probe. Version and
+    date read from the unauthenticated itunes.apple.com/lookup metadata endpoint.
+  description: >-
+    RYSE's first-party consumer app for pairing, calibrating and controlling SmartShade, SmartCurtain
+    and SmartBridge devices over Bluetooth and through the SmartBridge cloud. Not a developer SDK and
+    exposes no documented API.
+- name: RYSE SmartHome
+  official: true
+  kind: platform-integration-app
+  platform: Homey (Athom)
+  registry: homey-app-store
+  registry_url: https://homey.app/en-us/app/com.ryse/RYSE-SmartHome/
+  app_id: com.ryse
+  publisher: RYSE Developer Official
+  version: 1.2.1
+  published: null
+  published_note: >-
+    The Homey app store page states only "2 years ago" for the last update and exposes no dated
+    metadata endpoint — api.athom.com/app/com.ryse returned HTTP 404. The version (1.2.1) is
+    published on the store page; the exact release date is not, so `published` is null rather than
+    guessed.
+  currency_note: >-
+    ABANDONMENT SIGNAL. RYSE's Homey integration has not shipped a release in roughly two years,
+    while the iOS app shipped seven weeks before this probe and the commerce MCP surface is on the
+    2026-04-08 UCP version. It is the stalest first-party artifact RYSE distributes.
+  requires: Homey Pro (cloud-based; SmartBridge required)
+  capabilities: windowcoverings position control (0-100%) exposed to Homey Flows
+no_registry_presence:
+  probed: '2026-08-26'
+  results:
+  - {registry: npm, query: 'text=helloryse', total_results: 0}
+  - {registry: npm, query: 'text=ryse shade', total_results: 'no RYSE-owned package in the top 10'}
+  - {registry: pypi, package: ryse, status: 404}
+  - {registry: github, org: ryse, status: 404}
+  - {registry: github, org: helloryse, status: 404}
+  - {registry: github, org: ryse-smart-shade, status: 404}
+  - {registry: 'google-play', id: com.ryse.smartshade, status: 404}
+  - {registry: 'google-play', id: com.life.axis, status: 404}
+github_org:
+  candidate: https://github.com/ryse-inc
+  status: 200
+  public_repos: 0
+  created_at: '2026-08-12'
+  name: null
+  description: null
+  blog: null
+  verdict: unverified
+  note: >-
+    A github.com/ryse-inc org exists but is two weeks old, completely empty, and carries no name,
+    description, website or email tying it to RYSE USA Inc. It is not linked from any RYSE page. No
+    GitHubOrganization pointer is emitted — attributing an unowned, empty namespace to this company
+    would be a claim we cannot evidence.
+third_party:
+  note: >-
+    Recorded for completeness and explicitly NOT counted as RYSE SDKs. The existence of these is
+    itself a finding: developers reverse-engineered the SmartShade BLE surface because RYSE ships no
+    device API.
+  packages:
+  - name: ryse_mqtt
+    official: false
+    registry: github
+    url: https://github.com/ibielopolskyi/ryse_mqtt
+    description: Third-party MQTT integration for RYSE smart shades.
+  - name: RYSE Home Assistant custom integration
+    official: false
+    registry: github / HACS
+    description: >-
+      Community BLE integration exposing RZSS devices as Home Assistant cover entities with full
+      position control, requiring no RYSE app, bridge or registration.
+    reference: https://community.home-assistant.io/t/ryse-blinds/230612
+findings:
+- >-
+  Zero API client libraries. For the agent-commerce surface this is defensible — MCP needs no vendor
+  SDK, any MCP client speaks it — but it means there is nothing to version-check against the API.
+- >-
+  The only decayed first-party artifact is the Homey app at 1.2.1, roughly two years stale.

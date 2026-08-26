@@ -1,0 +1,144 @@
+generated: '2026-08-26'
+method: probed
+source: >-
+  https://www.helloryse.com/.well-known/ucp,
+  https://account.helloryse.com/.well-known/oauth-authorization-server,
+  https://account.helloryse.com/.well-known/oauth-protected-resource,
+  https://www.helloryse.com/.well-known/openid-configuration, and live JSON-RPC probes of RYSE's
+  three MCP endpoints on 2026-08-26
+summary: >-
+  RYSE implements no regulated-industry standard and publishes no compliance certifications. What it
+  does implement — and declares in its own machine-readable contract, not in marketing copy — is the
+  Universal Commerce Protocol, the interoperability standard for its market.
+domain_standard:
+  detected: true
+  standard: Universal Commerce Protocol (UCP)
+  version: '2026-04-08'
+  also_supported: ['2026-01-23']
+  signature: >-
+    Reverse-DNS capability URNs in the dev.ucp.* namespace, declared in a UCP merchant profile served
+    from RYSE's own host, each bound to a published JSON Schema.
+  evidence_location: https://www.helloryse.com/.well-known/ucp
+  evidence_http_status: 200
+  evidence_file: well-known/ryse-ucp.json
+  declared_capabilities:
+  - dev.ucp.shopping.cart
+  - dev.ucp.shopping.checkout
+  - dev.ucp.shopping.fulfillment
+  - dev.ucp.shopping.discount
+  - dev.ucp.shopping.order
+  - dev.ucp.shopping.catalog.search
+  - dev.ucp.shopping.catalog.lookup
+  - dev.shopify.catalog
+  declared_services:
+  - id: dev.ucp.shopping
+    transport: mcp
+    endpoint: https://helloryse.myshopify.com/api/ucp/mcp
+    schema: https://ucp.dev/2026-04-08/services/shopping/mcp.openrpc.json
+  - id: dev.ucp.shopping
+    transport: embedded
+    schema: https://ucp.dev/2026-04-08/services/shopping/embedded.openrpc.json
+  declared_payment_handlers:
+  - {id: gpay, urn: com.google.pay, version: '2026-01-11'}
+  - {id: shopify.card, urn: dev.shopify.card, version: '2026-01-15'}
+  - {id: shop_pay, urn: dev.shopify.shop_pay, version: '2026-04-08'}
+  integration_consequence: >-
+    An agent that already speaks UCP 2026-04-08 can transact with RYSE with no bespoke connector: the
+    capability set, the schemas and the MCP endpoint are all discoverable from one anonymous GET.
+compliance_certifications:
+  published: false
+  probed:
+  - {url: 'https://trust.helloryse.com/', status: 'no response (DNS/connection failed)'}
+  - {url: 'https://www.helloryse.com/pages/security', status: 404}
+  - {url: 'https://www.helloryse.com/.well-known/security.txt', status: 404}
+  note: >-
+    No SOC 2, ISO 27001, PCI DSS, HIPAA or FedRAMP claim appears anywhere on RYSE's own hosts. Card
+    data never touches RYSE's surface — payment is delegated to the declared handlers — so PCI scope
+    sits with those handlers, not with RYSE. No Compliance pointer is emitted, because there is
+    nothing published to point at.
+conformance_count: 12
+conformance:
+- id: ucp
+  label: Universal Commerce Protocol 2026-04-08
+  conforms: true
+  evidence: >-
+    /.well-known/ucp declares ucp.version 2026-04-08 with eight dev.ucp.* / dev.shopify.*
+    capabilities and a UCP shopping service over MCP transport. HTTP 200 on 2026-08-26.
+- id: mcp
+  label: Model Context Protocol
+  conforms: true
+  evidence: >-
+    All three endpoints answer JSON-RPC 2.0 initialize and tools/list. Negotiated protocolVersion
+    2024-11-05 on the two commerce servers and 2025-03-26 on the customer-account server. 22 tools
+    returned with full JSON Schema inputSchema.
+- id: json-rpc-2.0
+  label: JSON-RPC 2.0
+  conforms: true
+  evidence: 'Every response carries {"jsonrpc":"2.0","id":...} with a result or an error{code,message,data}.'
+- id: json-schema-2020-12
+  label: JSON Schema 2020-12
+  conforms: true
+  evidence: >-
+    Tool inputSchemas declare "$schema":"https://json-schema.org/draft/2020-12/schema" verbatim.
+- id: oauth2
+  label: OAuth 2.0 Authorization Code
+  conforms: true
+  evidence: >-
+    /.well-known/oauth-authorization-server declares grant_types_supported
+    [authorization_code, refresh_token, urn:ietf:params:oauth:grant-type:jwt-bearer] with
+    response_types_supported [code].
+- id: oauth2-pkce
+  label: PKCE (RFC 7636)
+  conforms: true
+  evidence: 'code_challenge_methods_supported: ["S256"] — S256 only, no plain.'
+- id: oidc
+  label: OpenID Connect Core 1.0
+  conforms: true
+  evidence: >-
+    /.well-known/openid-configuration served on all three hosts; issuer, jwks_uri, id_token signing
+    RS256, subject_types public, claims [iss,sub,aud,exp,iat,nonce,sid,email,email_verified].
+- id: rfc8414
+  label: OAuth 2.0 Authorization Server Metadata (RFC 8414)
+  conforms: true
+  evidence: /.well-known/oauth-authorization-server returns HTTP 200 with a valid metadata document.
+- id: rfc9728
+  label: OAuth 2.0 Protected Resource Metadata (RFC 9728)
+  conforms: true
+  evidence: >-
+    https://account.helloryse.com/.well-known/oauth-protected-resource returns
+    {"resource":"https://account.helloryse.com","authorization_servers":[...],
+    "bearer_methods_supported":["header"]}, and the 401 on the customer-account MCP carries a
+    www-authenticate pointing at the matching discovery document.
+- id: idempotency
+  label: Idempotent write semantics
+  conforms: true
+  evidence: >-
+    meta["idempotency-key"] is a REQUIRED property of complete_checkout's inputSchema. Scoped to that
+    one operation; no other write carries it.
+- id: rfc9457
+  label: Problem Details for HTTP APIs (RFC 9457)
+  conforms: false
+  evidence: >-
+    No application/problem+json is returned on any surface. Errors are JSON-RPC error objects, MCP
+    isError text blocks, or {"errors":[{"message":...}]}.
+- id: rfc9116
+  label: security.txt (RFC 9116)
+  conforms: false
+  evidence: /.well-known/security.txt returned 404 on www.helloryse.com and account.helloryse.com.
+not_applicable:
+- {id: fhir, reason: not a health provider}
+- {id: fapi, reason: not a financial-services provider}
+- {id: scim, reason: no identity-provisioning surface}
+- {id: odata, reason: no OData surface}
+- {id: psd2, reason: not a payment service provider; payment is delegated to declared UCP handlers}
+- id: matter
+  reason: >-
+    Matter/Thread would be the domain standard for the SmartShade hardware, but RYSE ships no
+    developer-facing device contract to declare it in. Its published device integrations are
+    Alexa, Google Home and Apple HomeKit via the SmartBridge, none of which is a standard RYSE
+    itself publishes a contract against.
+regulatory_regime:
+  applicable: none
+  note: >-
+    Consumer smart-home hardware and direct-to-consumer retail. No regime in scoring.yml's
+    industry-to-regime map covers this sector, so no conditional regulatory facet applies.

@@ -1,18 +1,83 @@
 aid: ryse
 name: RYSE
-description: 'RYSE is a company surfaced via the API Evangelist harvest backlog (source: secondary-market)
-  and added to the network as a stub for full-pipeline profiling.'
+description: >-
+  RYSE (legal name RYSE USA Inc.) is a consumer IoT and smart-home hardware company that retrofits
+  existing window coverings with motorization. Its product line — SmartShade, SmartShade + BatteryPack,
+  SmartCurtain, SmartBridge and SmartButton — motorizes shades, blinds and curtains a household already
+  owns, and pairs them to Amazon Alexa, Google Home and Apple HomeKit through the SmartBridge add-on,
+  plus a first-party Homey Pro app. RYSE publishes no traditional developer program: there is no
+  developer portal, no OpenAPI, no GitHub organization and no device or cloud API for the shade
+  hardware itself. What RYSE does publish, on its own helloryse.com hosts, is a substantial
+  agent-commerce surface: an llms.txt and agents.md, a Universal Commerce Protocol (UCP) discovery
+  document at /.well-known/ucp, and three live, anonymously-introspectable MCP servers covering
+  catalog search, cart, checkout and customer order status.
 url: https://raw.githubusercontent.com/api-evangelist/ryse/refs/heads/main/apis.yml
+image: https://cdn.shopify.com/s/files/1/0514/7980/6112/t/6/assets/RYSE_Logo.svg
 x-type: company
 x-source: harvest:secondary-market
-x-tier: stub
-x-tier-reason: harvest
 specificationVersion: '0.20'
 created: '2026-08-26'
 modified: '2026-08-26'
 tags:
-- Company
-apis: []
+- Smart Home
+- Internet of Things
+- Consumer Electronics
+- Home Automation
+- Window Coverings
+- Agentic Commerce
+- Model Context Protocol
+- Universal Commerce Protocol
+- E-commerce
+- Shopify
+apis:
+- name: RYSE UCP Commerce MCP
+  description: >-
+    RYSE's Universal Commerce Protocol (UCP) shopping service, exposed over MCP at
+    https://www.helloryse.com/api/ucp/mcp. Anonymous tools/list returns 13 tools with full JSON Schema
+    input contracts covering catalog search/lookup/product detail, cart lifecycle, and checkout
+    lifecycle including a required idempotency-key on complete_checkout. Shopify-native surface,
+    scoped to RYSE's own store.
+  humanURL: https://www.helloryse.com/agents.md
+  baseURL: https://www.helloryse.com/api/ucp/mcp
+  tags:
+  - Agentic Commerce
+  - Model Context Protocol
+  - Universal Commerce Protocol
+  properties:
+  - type: MCPServer
+    url: mcp/ryse-mcp.yml
+  - type: ToolCrosswalk
+    url: mcp/ryse-tool-crosswalk.yml
+- name: RYSE Storefront MCP
+  description: >-
+    Shopify Storefront MCP served at https://www.helloryse.com/api/mcp. Anonymous tools/list returns 5
+    tools — search_catalog, get_cart, update_cart, get_product_details and
+    search_shop_policies_and_faqs — over RYSE's own product catalog and published policies.
+  humanURL: https://www.helloryse.com/llms.txt
+  baseURL: https://www.helloryse.com/api/mcp
+  tags:
+  - Agentic Commerce
+  - Model Context Protocol
+  properties:
+  - type: MCPServer
+    url: mcp/ryse-mcp.yml
+- name: RYSE Customer Account MCP
+  description: >-
+    Customer-account MCP served at https://account.helloryse.com/customer/api/mcp. Anonymous
+    tools/list returns 4 tools — get_most_recent_order_status, get_order_status,
+    get_store_credit_balances and request_return — whose execution requires a customer OAuth token
+    issued by RYSE's own authorization server at account.helloryse.com.
+  humanURL: https://www.helloryse.com/account/login
+  baseURL: https://account.helloryse.com/customer/api/mcp
+  tags:
+  - Agentic Commerce
+  - Model Context Protocol
+  - Customer Accounts
+  properties:
+  - type: MCPServer
+    url: mcp/ryse-mcp.yml
+  - type: Authentication
+    url: authentication/ryse-authentication.yml
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
@@ -20,4 +85,59 @@ maintainers:
   email: info@apis.io
 common:
 - type: Website
-  url: https://www.hiive.com/securities/ryse-stock
+  url: https://www.helloryse.com/
+- type: Documentation
+  url: https://www.helloryse.com/agents.md
+- type: Support
+  url: https://support.helloryse.com/en/
+- type: Blog
+  url: https://blog.helloryse.com/
+- type: Pricing
+  url: https://www.helloryse.com/collections/all
+- type: SignUp
+  url: https://www.helloryse.com/account/login
+- type: TermsOfService
+  url: https://www.helloryse.com/policies/terms-of-service
+- type: PrivacyPolicy
+  url: https://www.helloryse.com/policies/privacy-policy
+- type: LLMsTxt
+  url: llms/ryse-llms.txt
+- type: WellKnown
+  url: well-known/ryse-well-known.yml
+- type: MCPServer
+  url: mcp/ryse-mcp.yml
+- type: ToolCrosswalk
+  url: mcp/ryse-tool-crosswalk.yml
+- type: Authentication
+  url: authentication/ryse-authentication.yml
+- type: OAuthScopes
+  url: scopes/ryse-scopes.yml
+- type: Conventions
+  url: conventions/ryse-conventions.yml
+- type: Idempotency
+  url: conventions/ryse-conventions.yml
+- type: Conformance
+  url: conformance/ryse-conformance.yml
+- type: ErrorCatalog
+  url: errors/ryse-problem-types.yml
+- type: Lifecycle
+  url: lifecycle/ryse-lifecycle.yml
+- type: Deprecation
+  url: lifecycle/ryse-lifecycle.yml
+- type: RateLimits
+  url: rate-limits/ryse-rate-limits.yml
+- type: Plans
+  url: plans/ryse-plans-pricing.yml
+- type: DomainSecurity
+  url: security/ryse-domain-security.yml
+- type: Packages
+  url: packages/ryse-packages.yml
+- type: DataModel
+  url: data-model/ryse-data-model.yml
+- type: AgentSkill
+  url: skills/_index.yml
+x-enrichment:
+  date: '2026-08-26'
+  status: enriched
+  artifacts_added: 12
+  pass: local-v1

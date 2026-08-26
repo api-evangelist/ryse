@@ -1,0 +1,237 @@
+generated: '2026-08-26'
+method: derived
+source: >-
+  Derived by binding every tool returned by anonymous tools/list on RYSE's three MCP endpoints
+  (mcp/ryse-ucp-mcp-tools.json, mcp/ryse-storefront-mcp-tools.json,
+  mcp/ryse-customer-account-mcp-tools.json, all probed 2026-08-26) to the UCP capability URN and
+  published JSON Schema RYSE declares for it in well-known/ryse-ucp.json.
+binding_basis: ucp-capability
+binding_basis_note: >-
+  The normal crosswalk binds MCP tools to OpenAPI operationIds. RYSE publishes NO OpenAPI, on any
+  host — see the STEP 0b probe record below. The strongest real binding available is therefore
+  tool -> UCP capability URN -> published capability schema, which is a machine-readable contract
+  RYSE genuinely declares from its own /.well-known/ucp. A second axis maps the deprecated
+  Storefront MCP tools onto their UCP replacements, which is the migration an integrator has to make
+  before 2026-08-31. Every row is a tool that was actually returned; nothing is mapped by guess.
+surfaces:
+  openapi:
+    present: false
+    probed:
+    - {url: 'https://www.helloryse.com/openapi.json', status: 404}
+    - {url: 'https://www.helloryse.com/openapi.yaml', status: 404}
+    - {url: 'https://www.helloryse.com/swagger.json', status: 404}
+    - {url: 'https://www.helloryse.com/v1/openapi.json', status: 404}
+    - {url: 'https://www.helloryse.com/api-docs', status: 404}
+    - {url: 'https://account.helloryse.com/openapi.json', status: 406}
+    - {url: 'https://helloryse.myshopify.com/openapi.json', status: 404}
+  graphql:
+    present: false
+    note: No /graphql surface is advertised on any RYSE host.
+  mcp:
+  - id: ucp
+    url: https://www.helloryse.com/api/ucp/mcp
+    gated: false
+    tools: 13
+    api_version: '2026-04-08'
+    status: current
+  - id: storefront
+    url: https://www.helloryse.com/api/mcp
+    gated: false
+    tools: 5
+    api_version: unstable
+    status: deprecated
+    sunset: '2026-08-31'
+  - id: customer-account
+    url: https://account.helloryse.com/customer/api/mcp
+    gated: partially
+    gated_note: tools/list is anonymous; every tools/call requires a customer OAuth bearer token
+    tools: 4
+    status: current
+crosswalk:
+- tool: search_catalog
+  surface: ucp
+  category: catalog
+  ucp_capability: dev.ucp.shopping.catalog.search
+  schema: https://ucp.dev/2026-04-08/schemas/shopping/catalog_search.json
+  rest: []
+  binding: ucp-capability
+  confidence: high
+- tool: lookup_catalog
+  surface: ucp
+  category: catalog
+  ucp_capability: dev.ucp.shopping.catalog.lookup
+  schema: https://ucp.dev/2026-04-08/schemas/shopping/catalog_lookup.json
+  rest: []
+  binding: ucp-capability
+  confidence: high
+- tool: get_product
+  surface: ucp
+  category: catalog
+  ucp_capability: dev.ucp.shopping.catalog.lookup
+  schema: https://ucp.dev/2026-04-08/schemas/shopping/catalog_lookup.json
+  rest: []
+  binding: ucp-capability
+  confidence: medium
+  note: >-
+    Single-product detail. RYSE declares dev.shopify.catalog extending the two base catalog
+    capabilities; get_product is the lookup projection of that extension.
+- tool: create_cart
+  surface: ucp
+  category: cart
+  ucp_capability: dev.ucp.shopping.cart
+  schema: https://ucp.dev/2026-04-08/schemas/shopping/cart.json
+  rest: []
+  binding: ucp-capability
+  confidence: high
+  write: true
+  reversal: cancel_cart
+- tool: get_cart
+  surface: ucp
+  category: cart
+  ucp_capability: dev.ucp.shopping.cart
+  schema: https://ucp.dev/2026-04-08/schemas/shopping/cart.json
+  rest: []
+  binding: ucp-capability
+  confidence: high
+- tool: update_cart
+  surface: ucp
+  category: cart
+  ucp_capability: dev.ucp.shopping.cart
+  schema: https://ucp.dev/2026-04-08/schemas/shopping/cart.json
+  rest: []
+  binding: ucp-capability
+  confidence: high
+  write: true
+  reversal: cancel_cart
+  also_touches: [dev.ucp.shopping.discount]
+- tool: cancel_cart
+  surface: ucp
+  category: cart
+  ucp_capability: dev.ucp.shopping.cart
+  schema: https://ucp.dev/2026-04-08/schemas/shopping/cart.json
+  rest: []
+  binding: ucp-capability
+  confidence: high
+  write: true
+  is_reversal_of: [create_cart, update_cart]
+- tool: create_checkout
+  surface: ucp
+  category: checkout
+  ucp_capability: dev.ucp.shopping.checkout
+  schema: https://ucp.dev/2026-04-08/schemas/shopping/checkout.json
+  rest: []
+  binding: ucp-capability
+  confidence: high
+  write: true
+  reversal: cancel_checkout
+- tool: get_checkout
+  surface: ucp
+  category: checkout
+  ucp_capability: dev.ucp.shopping.checkout
+  schema: https://ucp.dev/2026-04-08/schemas/shopping/checkout.json
+  rest: []
+  binding: ucp-capability
+  confidence: high
+- tool: update_checkout
+  surface: ucp
+  category: checkout
+  ucp_capability: dev.ucp.shopping.checkout
+  schema: https://ucp.dev/2026-04-08/schemas/shopping/checkout.json
+  rest: []
+  binding: ucp-capability
+  confidence: high
+  write: true
+  also_touches: [dev.ucp.shopping.fulfillment, dev.ucp.shopping.discount]
+  reversal: cancel_checkout
+- tool: complete_checkout
+  surface: ucp
+  category: checkout
+  ucp_capability: dev.ucp.shopping.checkout
+  schema: https://ucp.dev/2026-04-08/schemas/shopping/checkout.json
+  rest: []
+  binding: ucp-capability
+  confidence: high
+  write: true
+  money_moving: true
+  idempotency_key: 'meta["idempotency-key"] (REQUIRED)'
+  human_approval_required: true
+  reversal: request_return
+  reversal_window: 30 days from purchase (https://www.helloryse.com/policies/refund-policy)
+- tool: cancel_checkout
+  surface: ucp
+  category: checkout
+  ucp_capability: dev.ucp.shopping.checkout
+  schema: https://ucp.dev/2026-04-08/schemas/shopping/checkout.json
+  rest: []
+  binding: ucp-capability
+  confidence: high
+  write: true
+  is_reversal_of: [create_checkout, update_checkout]
+- tool: get_order
+  surface: ucp
+  category: order
+  ucp_capability: dev.ucp.shopping.order
+  schema: https://ucp.dev/2026-04-08/schemas/shopping/order.json
+  rest: []
+  binding: ucp-capability
+  confidence: high
+migration_crosswalk:
+  reason: >-
+    The Storefront MCP at /api/mcp is deprecated with a stated sunset of 2026-08-31 and instructs
+    callers to migrate to the UCP tools. These are the replacements.
+  rows:
+  - {deprecated_tool: search_catalog, surface: storefront, replacement: search_catalog, replacement_surface: ucp, confidence: high, note: 'UCP version adds pagination, filters and signals'}
+  - {deprecated_tool: get_product_details, surface: storefront, replacement: get_product, replacement_surface: ucp, confidence: high, note: 'storefront takes product_id + options; UCP takes a catalog object'}
+  - {deprecated_tool: get_cart, surface: storefront, replacement: get_cart, replacement_surface: ucp, confidence: high, note: 'storefront takes cart_id; UCP takes {meta, id}'}
+  - {deprecated_tool: update_cart, surface: storefront, replacement: update_cart, replacement_surface: ucp, confidence: high, note: 'storefront flattens add_items/update_items/remove_line_ids/buyer_identity/delivery_addresses/discount_codes; UCP nests them under a cart object'}
+  - {deprecated_tool: search_shop_policies_and_faqs, surface: storefront, replacement: null, replacement_surface: null, confidence: high, note: 'NO UCP EQUIVALENT — see mcp_only'}
+mcp_only:
+- tool: search_shop_policies_and_faqs
+  surface: storefront
+  reason: >-
+    Retrieval over RYSE's published store policies and FAQs. No UCP capability covers policy or FAQ
+    retrieval and there is no REST or GraphQL equivalent. It is the one capability that disappears
+    entirely at the 2026-08-31 sunset with nothing to migrate to — an agent needing RYSE's return or
+    shipping terms after that date must fall back to fetching
+    https://www.helloryse.com/policies/* as HTML.
+  severity: capability-loss
+- tool: get_most_recent_order_status
+  surface: customer-account
+  reason: >-
+    Resolves the signed-in customer's latest order with no identifier argument. Has no UCP or REST
+    equivalent because it depends on the OAuth session as the implicit selector.
+- tool: get_order_status
+  surface: customer-account
+  reason: >-
+    Fetches by human-facing order_number rather than by GID, which the UCP get_order does not
+    accept. Customer-scoped; requires customer-account-mcp-api:full.
+- tool: get_store_credit_balances
+  surface: customer-account
+  reason: No UCP capability models store credit. Customer-scoped and OAuth-gated.
+- tool: request_return
+  surface: customer-account
+  reason: >-
+    The only post-purchase reversal on the entire surface, and it exists only on the OAuth-gated
+    customer server — the UCP commerce surface an agent transacts on has no way to reach it. An
+    agent that completes a checkout anonymously cannot undo it without the buyer separately
+    authenticating.
+  severity: reversal-surface-split
+rest_only: []
+rest_only_note: RYSE publishes no REST contract, so there are no REST-only operations to record.
+coverage:
+  tools_total: 22
+  tools_ucp: 13
+  tools_storefront: 5
+  tools_customer_account: 4
+  bound_to_ucp_capability: 13
+  bound_to_openapi_operation: 0
+  mcp_only: 5
+  rest_only: 0
+  deprecated_with_replacement: 4
+  deprecated_without_replacement: 1
+  distinct_ucp_capabilities_covered: 6
+  ucp_capabilities_declared: 8
+  ucp_capabilities_with_no_dedicated_tool: [dev.ucp.shopping.fulfillment, dev.ucp.shopping.discount]
+  ucp_capabilities_with_no_dedicated_tool_note: >-
+    Both are declared as extensions of checkout and cart in /.well-known/ucp and are exercised
+    through fields on update_checkout and update_cart rather than through tools of their own.

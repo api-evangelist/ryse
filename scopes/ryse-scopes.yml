@@ -1,0 +1,56 @@
+generated: '2026-08-26'
+method: probed
+source: https://account.helloryse.com/.well-known/oauth-authorization-server
+docs: null
+docs_note: >-
+  RYSE publishes no scopes/permissions reference page of its own. The scope list below is read
+  verbatim from the scopes_supported array of RYSE's own OAuth 2.0 authorization-server metadata
+  document, fetched anonymously on 2026-08-26 (HTTP 200).
+authorization_server: https://account.helloryse.com
+issuer: https://shopify.com/authentication/51479806112
+authorization_url: https://account.helloryse.com/authentication/oauth/authorize
+token_url: https://account.helloryse.com/authentication/oauth/token
+flow: authorization_code
+pkce: S256
+scope_count: 4
+scopes:
+- name: openid
+  description: >-
+    Standard OpenID Connect scope. Requests an ID token identifying the RYSE customer.
+  standard: OpenID Connect Core 1.0
+- name: email
+  description: >-
+    Standard OpenID Connect scope. Releases the email and email_verified claims for the RYSE
+    customer.
+  standard: OpenID Connect Core 1.0
+- name: customer-account-api:full
+  description: >-
+    Full access to the RYSE customer-account API on behalf of the signed-in customer — orders,
+    profile, addresses, store credit. Observed in the live login redirect on
+    https://www.helloryse.com/account/login.
+  granularity: coarse
+  note: >-
+    There is no read-only or per-resource variant published; the only offered granularity is ":full".
+- name: customer-account-mcp-api:full
+  description: >-
+    Full access to the customer-account MCP surface at
+    https://account.helloryse.com/customer/api/mcp — the scope an agent needs to actually execute
+    get_most_recent_order_status, get_order_status, get_store_credit_balances and request_return.
+  granularity: coarse
+  covers_tools:
+  - get_most_recent_order_status
+  - get_order_status
+  - get_store_credit_balances
+  - request_return
+unscoped_surfaces:
+- endpoint: https://www.helloryse.com/api/ucp/mcp
+  reason: >-
+    The UCP commerce MCP is anonymous. It has no OAuth scopes at all; admission is controlled by a
+    dereferenceable UCP agent profile (meta["ucp-agent"].profile), not by a token.
+- endpoint: https://www.helloryse.com/api/mcp
+  reason: The Storefront MCP is anonymous and carries no OAuth surface.
+findings:
+- >-
+  Coarse-only. Both RYSE-specific scopes end in ":full" — an agent that needs to read one order
+  status must be granted the same scope that authorizes request_return, a write. There is no
+  least-privilege option for an agent operating on a customer's behalf.

@@ -1,0 +1,49 @@
+generated: '2026-08-26'
+method: generated
+source: >-
+  Authored from the real tool names and JSON Schemas returned by anonymous tools/list on RYSE's three
+  MCP endpoints (probed 2026-08-26), plus RYSE's own /agents.md, /robots.txt, /.well-known/ucp,
+  /.well-known/oauth-authorization-server and /policies/refund-policy. Every tool name referenced in
+  every skill was returned by a live probe; none is invented.
+provider_published_skills:
+  found: false
+  probed:
+  - {url: 'https://www.helloryse.com/skills/', status: 404}
+  - {url: 'https://www.helloryse.com/SKILL.md', status: 404}
+  - {url: 'https://www.helloryse.com/pages/agents', status: 404}
+  - {url: 'https://www.helloryse.com/AGENTS.md', status: 200}
+  note: >-
+    RYSE serves no skill pack of its own. /AGENTS.md returns 200 but is byte-identical to the
+    /agents.md already saved verbatim at llms/ryse-agents.md — the same agent-instructions document
+    at a second casing, not a skill. That document recommends a THIRD-PARTY skill —
+    https://shop.app/SKILL.md, the Shopify Shop skill — rather than shipping one. That is a platform
+    skill covering every Shopify store, not a RYSE artifact, so it is not saved here.
+skill_count: 3
+skills:
+- name: ryse-buy-a-smartshade
+  file: ryse-buy-a-smartshade.md
+  api: RYSE UCP Commerce MCP
+  endpoint: https://www.helloryse.com/api/ucp/mcp
+  flow: catalog search -> cart -> checkout -> human-approved completion
+  operations: [search_catalog, get_product, create_cart, update_cart, create_checkout, update_checkout, complete_checkout, cancel_checkout]
+- name: ryse-track-and-return-an-order
+  file: ryse-track-and-return-an-order.md
+  api: RYSE Customer Account MCP
+  endpoint: https://account.helloryse.com/customer/api/mcp
+  flow: OAuth login -> order status -> store credit -> return request
+  operations: [get_most_recent_order_status, get_order_status, get_store_credit_balances, request_return]
+- name: ryse-discover-the-agent-surface
+  file: ryse-discover-the-agent-surface.md
+  api: RYSE UCP Commerce MCP
+  endpoint: https://www.helloryse.com/.well-known/ucp
+  flow: cold-start discovery -> endpoint selection -> deprecation avoidance
+  operations: [tools/list, initialize, search_shop_policies_and_faqs]
+grounding:
+  openapi: none published by RYSE
+  grounded_in: MCP tools/list JSON Schemas + UCP capability schemas + RYSE's published policies
+  cross_links:
+    conventions: conventions/ryse-conventions.yml
+    errors: errors/ryse-problem-types.yml
+    lifecycle: lifecycle/ryse-lifecycle.yml
+    authentication: authentication/ryse-authentication.yml
+    crosswalk: mcp/ryse-tool-crosswalk.yml

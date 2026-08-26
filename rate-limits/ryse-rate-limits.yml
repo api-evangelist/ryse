@@ -1,0 +1,62 @@
+generated: '2026-08-26'
+method: probed
+source: >-
+  https://www.helloryse.com/agents.md and https://www.helloryse.com/llms.txt (RYSE's own published
+  agent guidance), plus live header inspection of HTTP 200 responses from all three MCP endpoints on
+  2026-08-26
+limit_count: 0
+limit_count_note: >-
+  RYSE states that a rate limit exists but publishes no number. There is no documented requests-per-
+  window figure, no burst allowance and no per-tool quota anywhere on its surface, so limit_count is
+  an honest zero rather than an omission.
+policy:
+  documented: true
+  scope: per-IP
+  verbatim: >-
+    "Respect rate limits. The MCP endpoint is rate-limited per IP. Back off on 429 responses."
+  source: https://www.helloryse.com/agents.md
+  status: 200
+  applies_to: https://www.helloryse.com/api/ucp/mcp
+limits: []
+response_headers:
+  observed: none
+  probed_for:
+  - X-RateLimit-Limit
+  - X-RateLimit-Remaining
+  - X-RateLimit-Reset
+  - RateLimit
+  - RateLimit-Policy
+  - Retry-After
+  finding: >-
+    No RateLimit-* or X-RateLimit-* header appeared on any HTTP 200 from
+    https://www.helloryse.com/api/ucp/mcp, https://www.helloryse.com/api/mcp or
+    https://account.helloryse.com/customer/api/mcp. The only correlation header returned is
+    x-request-id. An agent has no runtime budget signal: it cannot see how much quota remains, and
+    learns it has exhausted the limit only by being refused.
+  observed_headers_on_200:
+  - 'content-type: application/json; charset=utf-8'
+  - 'x-shopify-ucp-mcp-api-version: 2026-04-08 (UCP endpoint)'
+  - 'x-shopify-mcp-api-version: unstable (Storefront endpoint)'
+  - 'x-request-id: <uuid>-<epoch>'
+exhaustion:
+  status_code: 429
+  status_code_source: >-
+    Stated in agents.md ("Back off on 429 responses"). No 429 was reproduced under ordinary probing,
+    so the response body shape and any Retry-After behaviour are unverified.
+  retry_after_documented: false
+  backoff_guidance: >-
+    "Back off on 429 responses" — no algorithm, interval or jitter guidance is given.
+related_limits:
+- surface: https://account.helloryse.com/authentication/oauth/authorize
+  observed_status: 429
+  observed: '2026-08-26'
+  note: >-
+    Following the /account/login redirect chain to the OAuth authorize endpoint returned HTTP 429 on
+    an ordinary single request, which suggests the customer authorization server is aggressively
+    throttled for non-browser clients. This is an observation of the login path, not a documented
+    API limit.
+findings:
+- >-
+  Documented-but-unquantified. RYSE tells agents a limit exists and tells them what status to expect,
+  but publishes neither the number nor a runtime header, which is the weakest useful position: an
+  agent can implement retry logic but cannot pace itself.

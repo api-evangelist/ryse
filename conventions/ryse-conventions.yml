@@ -1,0 +1,202 @@
+generated: '2026-08-26'
+method: probed
+source: >-
+  Derived from the verbatim tools/list JSON Schemas in mcp/ryse-ucp-mcp-tools.json,
+  mcp/ryse-storefront-mcp-tools.json and mcp/ryse-customer-account-mcp-tools.json, plus live
+  response-header and error probes of all three endpoints on 2026-08-26, plus RYSE's own
+  /agents.md, /llms.txt, /robots.txt and /policies/refund-policy.
+summary: >-
+  RYSE's callable surface is JSON-RPC 2.0 over HTTP POST (MCP), not REST. There is no OpenAPI, no
+  path-and-verb convention and no HTTP status vocabulary beyond the transport layer; the semantics
+  below are the ones that actually govern an agent calling RYSE.
+transport:
+  style: JSON-RPC 2.0 over HTTP POST (Model Context Protocol)
+  content_type: application/json
+  accept_header: application/json, text/event-stream
+  mcp_protocol_version_negotiated: '2024-11-05'
+  mcp_protocol_version_customer_account: '2025-03-26'
+  server_info:
+  - endpoint: https://www.helloryse.com/api/ucp/mcp
+    name: universal-commerce
+    version: 0.1.0
+  - endpoint: https://www.helloryse.com/api/mcp
+    name: storefront-renderer
+    version: 0.1.0
+  - endpoint: https://account.helloryse.com/customer/api/mcp
+    name: customer_account_api
+    version: 0.5.1
+authentication:
+  style: anonymous on the two commerce surfaces; OAuth 2.0 bearer on the customer-account surface
+  detail: authentication/ryse-authentication.yml
+  agent_identity: >-
+    UCP requires meta["ucp-agent"].profile, a fetchable agent profile URI, on every tools/call.
+idempotency:
+  supported: true
+  grade: verified
+  mechanism: request-body metadata field, not an HTTP header
+  parameter: meta["idempotency-key"]
+  required: true
+  scope: complete_checkout only
+  evidence: >-
+    The complete_checkout inputSchema on https://www.helloryse.com/api/ucp/mcp declares
+    meta.required = ["ucp-agent","idempotency-key"] with
+    {"idempotency-key":{"type":"string","description":"An idempotency key for completing the
+    checkout."}}. It is a REQUIRED field, not an optional one — the single money-moving call on
+    RYSE's surface cannot be issued without a caller-supplied key.
+  retention: undocumented
+  retention_note: >-
+    RYSE publishes no retention or replay window for the idempotency key. An agent cannot tell how
+    long a replay is honoured.
+  not_supported_on:
+  - create_cart / update_cart / cancel_cart (no idempotency-key in the schema)
+  - create_checkout / update_checkout / cancel_checkout (no idempotency-key in the schema)
+  - request_return on the customer-account MCP (no idempotency parameter at all)
+reversibility:
+  grade: verified
+  summary: >-
+    Every pre-payment write on RYSE's commerce surface has an explicit reversal tool, and the
+    post-payment reversal (returns/refunds) has a hard, provider-published window.
+  surfaces:
+  - write: create_cart / update_cart
+    reversal: cancel_cart
+    operation: cancel_cart
+    window: >-
+      Until the cart is completed. No time limit is published for cart cancellation.
+    window_stated: false
+    docs: https://www.helloryse.com/api/ucp/mcp (tools/list)
+  - write: create_checkout / update_checkout
+    reversal: cancel_checkout
+    operation: cancel_checkout
+    window: >-
+      Before complete_checkout. Once complete_checkout succeeds the checkout is an order and
+      cancel_checkout no longer applies.
+    window_stated: false
+    docs: https://www.helloryse.com/api/ucp/mcp (tools/list)
+  - write: complete_checkout (the money-moving call)
+    reversal: request_return
+    operation: request_return
+    reversal_endpoint: https://account.helloryse.com/customer/api/mcp
+    window: >-
+      Thirty (30) days from the original purchase, stated verbatim by RYSE: "you may return them in
+      their original condition within thirty (30) days of the original purchase." Refunds are then
+      "processed within 30 days from the time we receive your unit at our warehouse." A $10.00
+      restocking fee applies to all returns from helloryse.com, and expedited shipping fees are not
+      refundable.
+    window_stated: true
+    docs: https://www.helloryse.com/policies/refund-policy
+    caveats:
+    - >-
+      The reversal is a REQUEST, not an automatic reversal — request_return opens a return, it does
+      not issue the refund.
+    - >-
+      Returns are only accepted for items purchased on helloryse.com. Items bought through Amazon,
+      Best Buy or another retail partner must be returned to that retailer, and request_return will
+      not cover them.
+    - >-
+      There is no refund, void or reverse tool on any RYSE MCP surface. Post-purchase money movement
+      is a human/support workflow.
+  no_write_surface: false
+dry_run_mode:
+  supported: false
+  note: >-
+    No test mode, sandbox, simulation flag or preview parameter appears in any tool schema, and RYSE
+    publishes no sandbox store. An agent's only rehearsal is create_checkout followed by
+    cancel_checkout, which is a real checkout against real inventory.
+pagination:
+  style: opaque cursor
+  applies_to: search_catalog (UCP), lookup_catalog (UCP)
+  request_object: catalog.pagination
+  params:
+    cursor: {type: string, description: opaque pagination cursor}
+    limit: {type: integer, default: 10, minimum: 1}
+  note: >-
+    The Storefront MCP search_catalog (/api/mcp) exposes no pagination object at all — a second
+    reason to prefer the UCP surface.
+localization_and_context:
+  request_object: catalog.context / cart.context / checkout.context
+  fields:
+    address_country: ISO 3166-1 alpha-2
+    address_region: first-level administrative division
+    postal_code: string
+    language: IETF BCP 47
+    currency: ISO 4217
+    intent: free text describing buyer intent
+  semantics: >-
+    Context is explicitly provisional — "higher-resolution data supersedes these values and
+    unsupported hints may be ignored without error." An agent must not treat a context echo as
+    confirmation.
+platform_signals:
+  request_object: catalog.signals / cart.signals
+  fields:
+    dev.ucp.buyer_ip: buyer IP address (IPv4 or IPv6)
+    dev.ucp.user_agent: buyer HTTP User-Agent
+  purpose: authorization and abuse prevention, supplied by the calling platform
+money_encoding:
+  format: '{"amount": <integer>, "currency": "<ISO 4217>"}'
+  units: ISO 4217 minor units
+  example: '{"amount": 2500, "currency": "USD"} is $25.00'
+  warning: >-
+    Stated in the description of every UCP tool. An agent that quotes amount verbatim to a buyer
+    will be wrong by a factor of 100 in two-decimal currencies. Zero-decimal currencies such as JPY
+    are already whole units.
+identifiers:
+  style: Shopify Global IDs (GID)
+  form: gid://shopify/<Type>/<id>
+  examples:
+  - gid://shopify/Product/123
+  - gid://shopify/Cart/Z212345?key=123456789
+  note: >-
+    Cart GIDs carry a required ?key= query component; a bare Cart GID is rejected as
+    "Invalid cart_id format".
+tracing:
+  request_id_header: x-request-id
+  observed: true
+  example_shape: 79174893-d1af-4c97-8a24-90b03bfc79cb-1787779583
+  note: >-
+    Returned on every MCP response including errors. This is the only correlation identifier RYSE
+    exposes; there is no trace-id or idempotency-replay header.
+versioning:
+  style: date-based API version advertised in a response header, per surface
+  headers:
+    https://www.helloryse.com/api/ucp/mcp: 'x-shopify-ucp-mcp-api-version: 2026-04-08'
+    https://www.helloryse.com/api/mcp: 'x-shopify-mcp-api-version: unstable'
+  ucp_versions_supported: ['2026-04-08', '2026-01-23']
+  warning: >-
+    The Storefront MCP self-reports its API version as the literal string "unstable" AND is under a
+    dated sunset. See lifecycle/ryse-lifecycle.yml.
+  detail: lifecycle/ryse-lifecycle.yml
+error_envelope:
+  transport_level:
+    shape: JSON-RPC 2.0 error object
+    fields: [code, message, data]
+    http_status: 422 for UCP discovery failure, 200 for tool-level JSON-RPC errors
+  tool_level:
+    shape: 'MCP result with isError: true and a content[] array of text blocks'
+    http_status: 200
+    note: >-
+      A failed tool call returns HTTP 200. An agent that branches on HTTP status alone will read
+      every tool failure as a success.
+  rfc9457: false
+  detail: errors/ryse-problem-types.yml
+rate_limit_signaling:
+  headers_returned: none observed
+  policy_documented: true
+  detail: rate-limits/ryse-rate-limits.yml
+human_in_the_loop:
+  required: true
+  scope: complete_checkout, and any payment or order placement
+  source: https://www.helloryse.com/robots.txt
+  statement: >-
+    "Checkouts are for humans. Do NOT complete checkout, payment, or order placement automatically —
+    no scripted form fills, browser automation, or end-to-end agent flows that finalize payment
+    without an explicit, contemporaneous human approval step."
+  note: >-
+    This is a semantic constraint the protocol does not enforce. complete_checkout will run without
+    it; RYSE's published policy forbids it.
+cross_links:
+  authentication: authentication/ryse-authentication.yml
+  scopes: scopes/ryse-scopes.yml
+  errors: errors/ryse-problem-types.yml
+  lifecycle: lifecycle/ryse-lifecycle.yml
+  rate_limits: rate-limits/ryse-rate-limits.yml
+  data_model: data-model/ryse-data-model.yml

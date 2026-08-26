@@ -1,0 +1,101 @@
+generated: '2026-08-26'
+method: probed
+source: >-
+  Live response headers and tool-call responses from RYSE's three MCP endpoints on 2026-08-26,
+  RYSE's /.well-known/ucp merchant profile, and https://www.helloryse.com/policies/refund-policy
+summary: >-
+  RYSE publishes no versioning policy, no deprecation policy, no SLA, no changelog and no status
+  page of its own. What it does carry is a hard, dated sunset embedded in the runtime responses of
+  one of its two commerce MCP surfaces.
+versioning:
+  scheme: date-based, advertised per-surface in a response header
+  policy_published: false
+  surfaces:
+  - endpoint: https://www.helloryse.com/api/ucp/mcp
+    version_header: x-shopify-ucp-mcp-api-version
+    current_version: '2026-04-08'
+    ucp_versions_supported: ['2026-04-08', '2026-01-23']
+    version_discovery: https://www.helloryse.com/.well-known/ucp
+    stability: stable
+    server_info: {name: universal-commerce, version: 0.1.0}
+  - endpoint: https://www.helloryse.com/api/mcp
+    version_header: x-shopify-mcp-api-version
+    current_version: unstable
+    stability: unstable
+    server_info: {name: storefront-renderer, version: 0.1.0}
+    note: >-
+      The server self-declares the literal string "unstable" as its API version. There is no pinnable
+      version on this surface.
+  - endpoint: https://account.helloryse.com/customer/api/mcp
+    version_header: none
+    mcp_protocol_version: '2025-03-26'
+    server_info: {name: customer_account_api, version: 0.5.1}
+deprecation:
+  policy_published: false
+  policy_url: null
+  sunset_header_rfc8594: false
+  advertised_in_responses: true
+  active_deprecations:
+  - surface: RYSE Storefront MCP
+    endpoint: https://www.helloryse.com/api/mcp
+    status: deprecated
+    sunset_date: '2026-08-31'
+    migrate_to: https://www.helloryse.com/api/ucp/mcp
+    migration_docs: https://shopify.dev/docs/agents
+    affected_tools:
+    - search_catalog
+    - get_cart
+    - update_cart
+    - get_product_details
+    - search_shop_policies_and_faqs
+    announcement_channel: >-
+      An extra text block appended to the content[] array of every tool response — not an HTTP
+      Sunset/Deprecation header, not a changelog entry, and not a page on helloryse.com.
+    verbatim: >-
+      "DEPRECATION NOTICE: This tool is served by the Storefront MCP server at /api/mcp and will no
+      longer be accessible after August 31, 2026. Migrate to the UCP-conforming tools at
+      /api/ucp/mcp. See https://shopify.dev/docs/agents for migration details."
+    observed: '2026-08-26'
+    http_status: 200
+    finding: >-
+      Five days of notice remained at the time of this probe, and the only place the notice appears
+      is inside a successful tool response body. An agent that does not read content[] on success
+      will discover the sunset by outage. RYSE's own llms.txt and agents.md still name /api/mcp
+      without mentioning the sunset.
+  - surface: MCP protocol version negotiated by the commerce servers
+    detail: >-
+      Both commerce endpoints negotiate MCP protocolVersion 2024-11-05 even when the client offers a
+      newer one; the customer-account server negotiates 2025-03-26. Not a deprecation RYSE announced,
+      but a lag an integrator should plan for.
+status_page:
+  published: false
+  probed:
+  - {url: 'https://status.helloryse.com/', status: 'no response (DNS/connection failed)'}
+  note: >-
+    RYSE operates no status page. Availability of the commerce surface is inherited from the Shopify
+    platform (status.shopify.com), which RYSE does not link from any of its own pages.
+sla:
+  published: false
+support:
+  channel: https://support.helloryse.com/en/
+  status: 200
+  type: help center (Intercom), product support — not developer support
+changelog:
+  published: false
+  probed_absent: true
+  note: >-
+    No dated changelog, release-notes page or developer blog exists. blog.helloryse.com redirects to
+    https://www.helloryse.com/blogs/home ("The RYSE Home Journal"), a consumer content blog with no
+    API or product-release notes.
+product_lifecycle:
+  return_window_days: 30
+  return_window_source: https://www.helloryse.com/policies/refund-policy
+  refund_processing_days: 30
+  restocking_fee_usd: 10.00
+  note: >-
+    Included because it is the only provider-stated reversal window on the whole surface. See the
+    reversibility block in conventions/ryse-conventions.yml.
+deprecated_operations:
+  count: 5
+  source: >-
+    Derived from the sunset advisory above; all five Storefront MCP tools are deprecated as a unit.

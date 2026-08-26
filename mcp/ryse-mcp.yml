@@ -1,0 +1,97 @@
+generated: '2026-08-26'
+method: probed
+source: >-
+  POST {"jsonrpc":"2.0","id":1,"method":"tools/list"} against every MCP endpoint named in RYSE's own
+  /llms.txt, /robots.txt and /.well-known/ucp
+status: published
+ownership_note: >-
+  All three endpoints are served from hosts RYSE controls (www.helloryse.com and
+  account.helloryse.com) and return RYSE's own catalog, policies and orders. The servers are
+  Shopify-platform-native (RYSE runs its store on Shopify) and are merchant-scoped to shop
+  51479806112 / helloryse.myshopify.com — the same "platform-hosted, provider-owned" case as a
+  templated server block. RYSE advertises them itself in the llms.txt, agents.md and robots.txt it
+  serves from its own domain.
+deployment:
+  mode: remote
+  endpoint: https://www.helloryse.com/api/ucp/mcp
+  auth: none
+  verified: probed
+  note: >-
+    tools/list is anonymous and returned HTTP 200 on all three endpoints. tools/call on the UCP
+    server additionally requires meta["ucp-agent"].profile to resolve to a fetchable UCP agent
+    profile document — a probe with a non-profile URI returned HTTP 422 / JSON-RPC -32001
+    "UCP discovery failed" (profile_malformed). The customer-account server's tools operate on a
+    logged-in customer and require an OAuth access token from account.helloryse.com. No stdio
+    package is published.
+servers:
+- name: ryse-ucp-commerce
+  label: RYSE UCP Commerce MCP
+  transport: http
+  url: https://www.helloryse.com/api/ucp/mcp
+  alt_url: https://helloryse.myshopify.com/api/ucp/mcp
+  protocol: Universal Commerce Protocol (UCP) 2026-04-08
+  auth: none-for-discovery
+  tools_file: ryse-ucp-mcp-tools.json
+  tool_count: 13
+  probe:
+    http_status: 200
+    content_type: application/json
+    response_headers:
+      x-shopify-ucp-mcp-api-version: '2026-04-08'
+      x-request-id: present
+  tools:
+  - {name: search_catalog, category: catalog, description: Search for products from the online store}
+  - {name: lookup_catalog, category: catalog, description: Look up multiple products or variants by identifier}
+  - {name: get_product, category: catalog, description: Retrieve complete product detail by identifier}
+  - {name: create_cart, category: cart, description: Creates a new cart}
+  - {name: get_cart, category: cart, description: Get the cart contents}
+  - {name: update_cart, category: cart, description: Perform updates to a cart}
+  - {name: cancel_cart, category: cart, description: Cancels a cart}
+  - {name: create_checkout, category: checkout, description: Creates a checkout}
+  - {name: get_checkout, category: checkout, description: Returns details about the checkout}
+  - {name: update_checkout, category: checkout, description: Updates a checkout}
+  - {name: complete_checkout, category: checkout, description: Completes a checkout; requires meta.idempotency-key}
+  - {name: cancel_checkout, category: checkout, description: Cancels a checkout}
+  - {name: get_order, category: order, description: Get the details of an order}
+- name: ryse-storefront
+  label: RYSE Storefront MCP
+  transport: http
+  url: https://www.helloryse.com/api/mcp
+  auth: none-for-discovery
+  tools_file: ryse-storefront-mcp-tools.json
+  tool_count: 5
+  probe:
+    http_status: 200
+    content_type: application/json
+  tools:
+  - {name: search_catalog, category: catalog, description: Search for products from the online store}
+  - {name: get_product_details, category: catalog, description: Look up a product by ID and select a variant}
+  - {name: get_cart, category: cart, description: Get the cart including items, shipping options, discount info and checkout url}
+  - {name: update_cart, category: cart, description: Add/remove/update line items, buyer information and shipping details}
+  - {name: search_shop_policies_and_faqs, category: content, description: Get facts about the store's policies, products or services}
+- name: ryse-customer-account
+  label: RYSE Customer Account MCP
+  transport: http
+  url: https://account.helloryse.com/customer/api/mcp
+  auth: oauth
+  auth_note: >-
+    tools/list is anonymous; the tools themselves act on "a logged-in customer" and require a bearer
+    token from the authorization server advertised at
+    https://account.helloryse.com/.well-known/oauth-protected-resource
+  tools_file: ryse-customer-account-mcp-tools.json
+  tool_count: 4
+  probe:
+    http_status: 200
+    content_type: application/json
+  tools:
+  - {name: get_most_recent_order_status, category: orders, description: Gets the status of the customer's most recent order}
+  - {name: get_order_status, category: orders, description: Fetch a specific order by order number and return status details}
+  - {name: get_store_credit_balances, category: billing, description: Fetch the customer's store credit balances}
+  - {name: request_return, category: post-purchase, description: Allows a customer to request a return for an order}
+policy:
+  human_approval_required: true
+  source: https://www.helloryse.com/robots.txt
+  statement: >-
+    "Checkouts are for humans. Do NOT complete checkout, payment, or order placement automatically —
+    no scripted form fills, browser automation, or end-to-end agent flows that finalize payment
+    without an explicit, contemporaneous human approval step."
