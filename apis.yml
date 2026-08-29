@@ -12,6 +12,17 @@ description: >-
   document at /.well-known/ucp, and three live, anonymously-introspectable MCP servers covering
   catalog search, cart, checkout and customer order status.
 url: https://raw.githubusercontent.com/api-evangelist/ryse/refs/heads/main/apis.yml
+deliveryModel:
+  model: saas
+  open_source: false
+  commercial: true
+  callable_host: false
+  label: Hosted service · you call their endpoint
+  confidence: medium
+  source:
+  - pricing
+  generated: '2026-08-28'
+  method: derived
 image: https://cdn.shopify.com/s/files/1/0514/7980/6112/t/6/assets/RYSE_Logo.svg
 x-type: company
 x-source: harvest:secondary-market
