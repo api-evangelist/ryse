@@ -36,6 +36,17 @@ tags:
 - Home Automation
 - Window Coverings
 - Agentic Commerce
+- MCP
+- Universal Commerce Protocol
+- E-Commerce
+- Shopify
+tags_raw:
+- Smart Home
+- Internet of Things
+- Consumer Electronics
+- Home Automation
+- Window Coverings
+- Agentic Commerce
 - Model Context Protocol
 - Universal Commerce Protocol
 - E-commerce
@@ -51,6 +62,10 @@ apis:
   humanURL: https://www.helloryse.com/agents.md
   baseURL: https://www.helloryse.com/api/ucp/mcp
   tags:
+  - Agentic Commerce
+  - MCP
+  - Universal Commerce Protocol
+  tags_raw:
   - Agentic Commerce
   - Model Context Protocol
   - Universal Commerce Protocol
@@ -68,6 +83,9 @@ apis:
   baseURL: https://www.helloryse.com/api/mcp
   tags:
   - Agentic Commerce
+  - MCP
+  tags_raw:
+  - Agentic Commerce
   - Model Context Protocol
   properties:
   - type: MCPServer
@@ -81,6 +99,10 @@ apis:
   humanURL: https://www.helloryse.com/account/login
   baseURL: https://account.helloryse.com/customer/api/mcp
   tags:
+  - Agentic Commerce
+  - MCP
+  - Customer Accounts
+  tags_raw:
   - Agentic Commerce
   - Model Context Protocol
   - Customer Accounts

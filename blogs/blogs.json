@@ -1,0 +1,14 @@
+{
+  "repo": "ryse",
+  "feeds": [
+    {
+      "source": "https://support.helloryse.com/en/",
+      "feed_url": "https://support.helloryse.com/en/feed.xml",
+      "title": "",
+      "saved": 1,
+      "method": "discovered"
+    }
+  ],
+  "post_count": 1,
+  "fetched": "2026-08-30T22:33:40Z"
+}
