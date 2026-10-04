@@ -89,6 +89,9 @@ apis:
     url: mcp/ryse-mcp.yml
   - type: ToolCrosswalk
     url: mcp/ryse-tool-crosswalk.yml
+  x-surface: platform-generated
+  x-platform: shopify
+  x-platform-surface: ucp
 - name: RYSE Storefront MCP
   description: >-
     Shopify Storefront MCP served at https://www.helloryse.com/api/mcp. Anonymous tools/list returns 5
@@ -105,6 +108,9 @@ apis:
   properties:
   - type: MCPServer
     url: mcp/ryse-mcp.yml
+  x-surface: platform-generated
+  x-platform: shopify
+  x-platform-surface: storefront-mcp
 - name: RYSE Customer Account MCP
   description: >-
     Customer-account MCP served at https://account.helloryse.com/customer/api/mcp. Anonymous
@@ -126,6 +132,9 @@ apis:
     url: mcp/ryse-mcp.yml
   - type: Authentication
     url: authentication/ryse-authentication.yml
+  x-surface: platform-generated
+  x-platform: shopify
+  x-platform-surface: customer-account-mcp
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
