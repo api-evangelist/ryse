@@ -64,5 +64,119 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-RYSE is a company surfaced via the API Evangelist harvest backlog (source: secondary-market) and added to the network as a stub for full-pipeline profiling.
-- https://www.hiive.com/securities/ryse-stock
+RYSE (legal name RYSE USA Inc.) is a consumer IoT and smart-home hardware company that retrofits existing window coverings with motorization. Its product line — SmartShade, SmartShade + BatteryPack, SmartCurtain, SmartBridge and SmartButton — motorizes shades, blinds and curtains a household already owns, and pairs them to Amazon Alexa, Google Home and Apple HomeKit through the SmartBridge add-on, plus a first-party Homey Pro app. RYSE publishes no traditional developer program: there is no developer portal, no OpenAPI, no GitHub organization and no device or cloud API for the shade hardware itself. What RYSE does publish, on its own helloryse.com hosts, is a substantial agent-commerce surface: an llms.txt and agents.md, a Universal Commerce Protocol (UCP) discovery document at /.well-known/ucp, and three live, anonymously-introspectable MCP servers covering catalog search, cart, checkout and customer order status.
+
+**Areas:** Smart Home · IoT · Consumer Electronics · Home Automation · Window Coverings · Agentic Commerce · MCP · Universal Commerce Protocol · E-Commerce · Shopify
+
+## RYSE on APIs.io
+
+Everything profiled for RYSE is published on APIs.io rather than in this repository. Start at the provider page — **[apis.io/providers/ryse/](https://apis.io/providers/ryse/)** — or go straight to one of the APIs or properties below.
+
+### APIs (3)
+
+- [RYSE UCP Commerce MCP](https://apis.io/apis/ryse/ryse-ucp-commerce-mcp/) — RYSE's Universal Commerce Protocol (UCP) shopping service, exposed over MCP at https://www.helloryse.com/api/ucp/mcp. Anonymous tools/list returns 13 tools…
+- [RYSE Storefront MCP](https://apis.io/apis/ryse/ryse-storefront-mcp/) — Shopify Storefront MCP served at https://www.helloryse.com/api/mcp. Anonymous tools/list returns 5 tools — search_catalog, get_cart, update_cart,…
+- [RYSE Customer Account MCP](https://apis.io/apis/ryse/ryse-customer-account-mcp/) — Customer-account MCP served at https://account.helloryse.com/customer/api/mcp. Anonymous tools/list returns 4 tools — get_most_recent_order_status,…
+
+### Published properties
+
+Each property below is a page on APIs.io carrying the machine-readable artifact and what it says.
+
+#### MCP servers (1)
+
+Model Context Protocol servers that expose the API to agents.
+
+- [ryse-mcp.yml](https://apis.io/servers/ryse/ryse-mcp-yml/)
+
+#### Security (2)
+
+Authentication, trust centre, and vulnerability disclosure.
+
+- [Ryse Authentication](https://apis.io/security/ryse/ryse-authentication/)
+- [Ryse Domain Security](https://apis.io/security/ryse/ryse-domain-security/)
+
+#### OAuth scopes (1)
+
+The permissions the API asks for.
+
+- [Ryse Scopes](https://apis.io/scopes/ryse/ryse-scopes/)
+
+#### Plans and pricing (1)
+
+Published plans, tiers and prices.
+
+- [Ryse Plans Pricing](https://apis.io/plans/ryse/ryse-plans-pricing/)
+
+#### Rate limits (1)
+
+Published request limits.
+
+- [Ryse Rate Limits](https://apis.io/rate-limits/ryse/ryse-rate-limits/)
+
+## Where to find this API
+
+Links to the company's own pages. This repository publishes no copy of their specifications — the canonical document is theirs and lives at the URLs below.
+
+- [Website](https://www.helloryse.com/)
+- [Documentation](https://www.helloryse.com/agents.md)
+- [Pricing](https://www.helloryse.com/collections/all)
+- [Sign up](https://www.helloryse.com/account/login)
+- [Support](https://support.helloryse.com/en/)
+- [Blog](https://blog.helloryse.com/)
+- [Terms of service](https://www.helloryse.com/policies/terms-of-service)
+- [Privacy policy](https://www.helloryse.com/policies/privacy-policy)
+
+## API Evangelist rating
+
+**Kin Score 29.1** — thin · rubric 0.25.0 · scored 2026-10-23
+
+| Facet | Score |
+|---|---|
+| Discoverability | 80.0 |
+| Contract quality | 0.0 |
+| Contract governance | 18.2 |
+| Operational transparency | 7.9 |
+| Developer ergonomics | 30.4 |
+| Access clarity | 44.7 |
+
+**Agent readiness 27.0** — agent-aware
+
+| Agent-readiness dimension | Result |
+|---|---|
+| Spec Presence | — |
+| Agentic Access | — |
+| Reversibility Documented | — |
+| MCP Server | platform (partial credit) |
+| Auth Clarity | served (partial credit) |
+| Idempotency | documented (partial credit) |
+| Error Semantics | documented (partial credit) |
+| OpenAPI Examples | — |
+| Rate Limit Signal | documented (partial credit) |
+| Event Surface Described | — |
+| Agent Skills | derived (partial credit) |
+| Well Known Catalog | — |
+| Consent Identity | — |
+| Agent Card | — |
+| Dry Run Mode | — |
+| Delegated Identity | served (partial credit) |
+| Protected Resource Metadata | verified |
+| Dynamic Client Registration | — |
+| Agentic Commerce | platform (partial credit) |
+| Pagination Ratio | na |
+| Operation Distinctiveness | na |
+
+**Regulatory alignment 34.3** — Horizontal (data, software, accessibility, platform)
+
+The rubric is published at [github.com/api-evangelist/kin-score](https://github.com/api-evangelist/kin-score). The per-check breakdown behind these numbers — which checks were earned, partial or missed — along with score history and how this provider compares to its peers, is available at [apis.io/providers/ryse/](https://apis.io/providers/ryse/).
+
+## How this profile is made
+
+API Evangelist profiles a company's public API surface the way a developer would find it: the website, developer portal and documentation, the specifications it publishes, its public repositories, and its pricing, status and changelog pages. From that it derives the properties above — contracts split per API, workflows, schemas, collections, governance rules, plans and rate limits — and scores them against the published [Kin Score rubric](https://github.com/api-evangelist/kin-score).
+
+The artifacts are published on [APIs.io](https://apis.io), not in this repository. This repository is the public record for RYSE: the place to say something is wrong, missing or out of date, and to ask for a re-score or a removal.
+
+## Open an issue
+
+- **Something about this listing** — a wrong description, a missing API, a stale artifact or a question about the rating: [open an issue on this repository](https://github.com/api-evangelist/ryse/issues/new).
+- **A new API, or one that is not in the catalog yet** — [submit it on APIs.io](https://apis.io/add/).
+- **Anything else** — [the APIs.io inbox](https://github.com/api-search/inbox/issues/new) or [info@apievangelist.com](mailto:info@apievangelist.com).
